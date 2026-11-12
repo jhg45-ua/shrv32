@@ -1,6 +1,6 @@
 # ==============================================================================
 # Proyecto: SHRV32 (Space-Hardened RISC-V 32)
-# Script:   create_project.tcl — Create the Vivado project in build/vivado/
+# Script:   create_project.tcl — Crea el proyecto Vivado en build/vivado/
 # ==============================================================================
 
 set script_dir [file dirname [file normalize [info script]]]
@@ -11,7 +11,7 @@ set part_name  "xc7a100tcsg324-1"
 
 file mkdir $proj_dir
 
-# Create a clean project without copying the source files to build/
+# Crear proyecto limpio sin copiar los fuentes a build/
 create_project -force $proj_name $proj_dir -part $part_name
 
 # Añadir módulos RTL sintetizables por subcarpetas
@@ -26,16 +26,21 @@ if {[llength $rtl_files] > 0} {
     add_files -fileset sources_1 -norecurse $rtl_files
 }
 
-# Añadir firmware.hex si ya está compilado (para $readmemh en síntesis/sim)
+# Añadir firmware.hex si ya está compilado y marcarlo como Memory Initialization File
 set hex_file "$repo_root/build/firmware.hex"
 if {[file exists $hex_file]} {
     add_files -fileset sources_1 -norecurse $hex_file
+    set_property file_type {Memory Initialization Files} [get_files $hex_file]
 }
+
+# Indicar a Vivado (synth_1 y sim_1) que resuelva firmware.hex por nombre base
+set_property verilog_define {VIVADO_MEM_INIT=1} [get_filesets sources_1]
+set_property verilog_define {VIVADO_MEM_INIT=1} [get_filesets sim_1]
 
 # Definir módulo raíz (Top-Level)
 set_property top soc [current_fileset]
 
-# Añadir archivo de restricciones de la Nexys A7 100T
+# Añadir archivo de restricciones de la Nexys A7-100T
 set xdc_file "$script_dir/Nexys-A7-100T-Master.xdc"
 if {[file exists $xdc_file]} {
     add_files -fileset constrs_1 -norecurse $xdc_file

@@ -22,8 +22,15 @@ module bram_sp #(
   reg [31:0] mem[0:WORDS-1];
 
   // Precarga la imagen de firmware tanto en simulación como en el bitstream de FPGA
+  // En modo proyecto de Vivado (synth_1/sim_1), los ficheros añadidos se buscan por nombre base
   initial begin
+`ifdef SYNTHESIS
+    $readmemh("firmware.hex", mem);
+`elsif VIVADO_MEM_INIT
+    $readmemh("firmware.hex", mem);
+`else
     $readmemh(INIT_FILE, mem);
+`endif
   end
 
   // Lectura/escritura síncrona: patrón obligatorio para inferir BRAM física (y no LUTRAM)
