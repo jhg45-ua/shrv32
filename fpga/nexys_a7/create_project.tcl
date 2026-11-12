@@ -22,6 +22,14 @@ set rtl_files [concat \
     [glob -nocomplain "$repo_root/rtl/top/*.v"] \
 ]
 
+# Si aún no hay núcleo endurecido en rtl/core/, usar el submódulo upstream de referencia
+if {[llength [glob -nocomplain "$repo_root/rtl/core/*.v"]] == 0} {
+    lappend rtl_files "$repo_root/external/picorv32/picorv32.v"
+}
+if {![file exists "$repo_root/rtl/periph/simpleuart.v"]} {
+    lappend rtl_files "$repo_root/external/picorv32/picosoc/simpleuart.v"
+}
+
 if {[llength $rtl_files] > 0} {
     add_files -fileset sources_1 -norecurse $rtl_files
 }
