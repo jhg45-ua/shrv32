@@ -1,0 +1,10 @@
+{
+  // Rutas de búsqueda de módulos (-y) e includes (-I) específicos de este proyecto
+  "verilog.linting.verilator.arguments": "-sv --lint-only --timing -y rtl/cores -y rtl/periph -y rtl/soc -Irtl/soc -Wall -Wno-UNUSEDSIGNAL -Wno-PINCONNECTEMPTY -Wno-BLKSEQ -Wno-WIDTH -Wno-DECLFILENAME -Wno-GENUNNAMED -Wno-MULTITOP -Wno-NEEDTIMINGOPT",
+
+  // El LSP de Verible detecta automáticamente 'verible.filelist' en la raíz
+  "verible.arguments": [
+    "--file_list_path=verible.filelist",
+    "--rules=-explicit-parameter-storage-type,-unpacked-dimensions-range-ordering"
+  ]
+}

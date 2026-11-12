@@ -7,20 +7,20 @@
 #endif
 
 void main(void) {
-    // 100 MHz / 115200 baud = 868
+    // 100 MHz / 115200 baudios = 868
     REG_UART_CLKDIV = 868;
     puts("\r\n");
     puts("==================================================\r\n");
-    puts("  SHRV32 (PicoRV32) Running on Digilent Nexys A7  \r\n");
+    puts("  SHRV32 (PicoRV32) en Digilent Nexys A7-100T     \r\n");
     puts("==================================================\r\n");
-    puts("CPU started successfully. Running LED counter...\r\n\r\n");
+    puts("CPU iniciada correctamente. Contador en LEDs...\r\n\r\n");
 
     uint32_t counter = 0;
     while (1) {
         REG_LEDS = counter & 0x7FFF;
 
         if ((counter & 0x0F) == 0) {
-            puts("[SHRV32 Heartbeat] Counter = ");
+            puts("[SHRV32 Latido] Contador = ");
             char hex_char = "0123456789ABCDEF"[(counter >> 4) & 0x0F];
             putc(hex_char);
             puts("\r\n");

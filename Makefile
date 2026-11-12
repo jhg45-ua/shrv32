@@ -6,19 +6,8 @@ BUILD_DIR   := build
 VIVADO_DIR  := $(BUILD_DIR)/vivado
 TCL_DIR     := fpga/nexys_a7
 
-# Si aún no hay núcleo endurecido en rtl/core/, incluir picorv32.v desde external/
-CORE_RTL    := $(wildcard rtl/core/*.v)
-ifeq ($(strip $(CORE_RTL)),)
-CORE_RTL    := external/picorv32/picorv32.v
-endif
-
-PERIPH_RTL  := $(wildcard rtl/periph/*.v)
-ifeq ($(strip $(PERIPH_RTL)),)
-PERIPH_RTL  := external/picorv32/picosoc/simpleuart.v
-endif
-
-RTL_SRCS    := $(CORE_RTL) $(wildcard rtl/mem/*.v) $(PERIPH_RTL) $(wildcard rtl/top/*.v)
-TB          ?= tb/tb_system.v
+RTL_SRCS    := $(wildcard rtl/core/*.v rtl/mem/*.v rtl/periph/*.v rtl/top/*.v)
+TB          ?= tb/tb_soc.v
 PORT        ?= /dev/ttyUSB1
 APP         ?= counter
 FW          ?= counter
@@ -55,7 +44,8 @@ wave:
 
 lint:
 	verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSED -Wno-UNDRIVEN -Wno-PINCONNECTEMPTY \
-		-Wno-WIDTH -Wno-SYNCASYNCNET --top-module System $(RTL_SRCS)
+		-Wno-PINMISSING -Wno-BLKSEQ -Wno-GENUNNAMED -Wno-PROCASSINIT -Wno-WIDTHTRUNC \
+		-Wno-WIDTHEXPAND -Wno-SYNCASYNCNET --top-module soc $(RTL_SRCS)
 
 synth: sw
 	@mkdir -p $(VIVADO_DIR)

@@ -3,7 +3,7 @@
 #define APP_BASE 0x00000800
 
 static void self_test(void) {
-    puts("\r\n[BOOT] SHRV32 (PicoRV32) SoC Initialized\r\n");
+    puts("\r\n[BOOT] SoC SHRV32 (PicoRV32) inicializado\r\n");
 
     // Comprobación visual de LEDs
     REG_LEDS = 0x00FF;
@@ -15,9 +15,9 @@ static void self_test(void) {
     volatile uint32_t *ram_test = (volatile uint32_t *)APP_BASE;
     *ram_test = 0xA5A55A5A;
     if (*ram_test == 0xA5A55A5A) {
-        puts("[BOOT] RAM test passed\r\n");
+        puts("[BOOT] Test de RAM superado\r\n");
     } else {
-        puts("[BOOT] RAM test failed\r\n");
+        puts("[BOOT] Error en test de RAM\r\n");
     }
 
     // Patrón de espera mientras el bootloader aguarda carga por UART
