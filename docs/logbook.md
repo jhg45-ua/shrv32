@@ -52,3 +52,23 @@ Levantar un *System-on-Chip* funcional mínimo en la placa **Digilent Nexys A7-1
 - **Aviso `SYNTH-6` (x4):** Vivado indica que el registro de salida de las `RAMB36E1` no usa una etapa adicional interna (`DOA_REG`), al estar multiplexado directamente hacia la CPU. Con `+3.531 ns` de margen a 100 MHz no supone problema en la línea base, pero conviene tenerlo en cuenta cuando se añada lógica combinacional de decodificación **ECC** en la ruta de lectura.
 - **Aviso `TIMING-18` (x19):** Esperable en esta etapa al tratarse de E/S lentas o asíncronas (`resetn`, `leds`, `trap`, `ser_tx`, `ser_rx`) sin restricciones `set_input_delay`/`set_output_delay` en el `.xdc`.
 - **Modo proyecto Vivado:** `$readmemh` en `synth_1`/`sim_1` requiere referenciar `"firmware.hex"` por nombre base y marcar el fichero como `Memory Initialization Files` en `create_project.tcl`.
+
+---
+
+## [2026-11-14] — Análisis del core de referencia HARV ([`harv_notes.md`](harv_notes.md))
+
+### Objetivo
+Estudiar las técnicas de tolerancia a fallos del submódulo [`external/harv`](../external/harv) (TMR y codificación Hamming SEC-DED) para definir qué patrones adoptar y qué errores evitar antes de iniciar la fase de endurecimiento RTL de SHRV32.
+
+### Trabajo realizado
+- Revisión completa del esquema TMR (`control_tmr.vhd`, `alu_tmr.vhd`) y de protección Hamming (`hamming_pkg.vhd`, `hamming_encoder.vhd`, `hamming_decoder.vhd`, `hamming_register.vhd`, `regfile.vhd`, `instr_fetch.vhd`) documentada en [`harv_notes.md`](harv_notes.md).
+- Criterios aprovechables para SHRV32:
+  - Atributos de síntesis portables entre Vivado (`DONT_TOUCH`) y Synplify/PolarFire (`syn_radhardlevel`, `syn_keep`, `syn_noprune`, `syn_safe_case`).
+  - Capa de diagnóstico y telemetría mediante contadores `SBU`/`DBU` y discrepancias TMR habilitados solo en transacciones válidas.
+- Carencias y *bugs* de HARV a evitar en SHRV32:
+  - TMR "macro" sin *self-healing* en `control_tmr` (el estado votado nunca realimenta `proc_status_r`) y triplicación combinacional costosa en `alu_tmr`.
+  - Hamming sin *auto-scrubbing*, banco de registros en flip-flops + `MUXF7` (sin inferir LUTRAM), matriz no balanceada frente a Hsiao (39,32), *bug* de paridad global en `get_parity_data_result` para reset no nulo y registro de configuración `harden_conf_r` sin reset ni protección (SPOF).
+
+### Decisiones de diseño para siguientes hitos
+- Mantener la ejecución multiciclo de `picorv32` aplicando TMR selectivo con realimentación (*self-healing*) sobre registros críticos (`reg_pc`, estados de control).
+- Implementar ECC mediante código **Hsiao SEC-DED (39,32)** balanceado con *auto-scrubbing* en el banco de registros (preservando LUTRAM) y controlador *Read-Modify-Write* en [`bram_sp.v`](../rtl/mem/bram_sp.v).
